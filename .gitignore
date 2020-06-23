@@ -26,6 +26,9 @@
 *.a
 *.lib
 
+# System files
+src/.DS_Store
+
 # Executables
 *.exe
 *.out
