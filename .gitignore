@@ -28,8 +28,10 @@
 
 # System files
 src/.DS_Store
+projetc.code-workspace
 
 # Executables
 *.exe
 *.out
 *.app
+
