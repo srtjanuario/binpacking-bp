@@ -43,6 +43,10 @@ IloNum Data::itemWeight(IloNum i) const
 	return this->itemWeight_[i];
 }
 
+IloNumArray Data::itemWeight(){
+	return this->itemWeight_;
+}
+
 ostream &operator<<(ostream &out, const Data &d)
 {
 	out << d.nItems() << endl;

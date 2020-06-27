@@ -16,6 +16,7 @@ public:
 	IloNum binCapacity() const;
 	IloNum nItems() const;
 	IloNum itemWeight(IloNum i) const;
+	IloNumArray itemWeight();
 
 	friend ostream& operator<<(ostream &out,const Data &d);
 private:

@@ -4,6 +4,7 @@
 class Node
 {
 public:
+	Node();
 	double bound();
 	void boundSet();
 
