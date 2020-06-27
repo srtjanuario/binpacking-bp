@@ -29,9 +29,11 @@
 # System files
 src/.DS_Store
 projetc.code-workspace
+.vscode/settings.json
 
 # Executables
 *.exe
 *.out
 *.app
+
 
