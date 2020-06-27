@@ -18,7 +18,7 @@ public:
 	Master(Data *input);
 	void solve();
 	void solveIP();
-	
+	void getObjValue();
 	void debug();
 	IloNum getDual(IloNum var);
 	string getStatus();

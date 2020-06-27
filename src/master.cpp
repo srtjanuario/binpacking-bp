@@ -51,6 +51,10 @@ void Master::solveIP()
 	binPackingSolver.solve();
 }
 
+void Master::getObjValue(){
+	cout << "Using " << binPackingSolver.getObjValue() << " bins" << endl;
+}
+
 void Master::debug()
 {
 	cout << *this << endl;

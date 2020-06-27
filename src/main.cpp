@@ -2,7 +2,7 @@
 #include "data.h"
 #include "master.h"
 #include "price.h"
-#define EPSILON 1e-6
+#include "column.h"
 
 int main(int argc, char **argv)
 {
@@ -12,25 +12,10 @@ int main(int argc, char **argv)
       Data input(argc, argv, &env);
       Master m(&input);
       Price p(&input);
-
-      while (true)
-      {
-         m.solve();
-
-         for (int i = 0; i < input.nItems(); i++)
-            p.setDual(i, m.getDual(i));
-
-         p.solve();
-
-         if (p.reducedCost() > -EPSILON)
-            break;
-         else
-            m.addColumn(p.newColumn());
-      }
-
-      m.solveIP();
-      cout << "Solution status: " << m.getStatus() << endl;
-      m.debug();
+      Column c(&input,&m,&p);
+      c.solve();
+      c.result();
+      return 0;
    }
    catch (IloException &ex)
    {
