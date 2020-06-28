@@ -20,7 +20,17 @@ Price::Price(Data *input) : price(input->env(), input->nItems()),
 	priceSolver.setOut(in->env().getNullStream());
 }
 
-IloNumArray Price::newColumn(){
+void Price::addSameBinConstraint(vector<pair<int, int>> &pair)
+{
+	for (auto i : pair)
+	{
+		Use[i.first].setLB(1.0);
+		Use[i.second].setLB(1.0);
+	}
+}
+
+IloNumArray Price::newColumn()
+{
 	this->priceSolver.getValues(newPatt, Use);
 	return newPatt;
 }
