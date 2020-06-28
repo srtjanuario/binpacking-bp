@@ -8,11 +8,12 @@ Column::Column(Data *data, Master *master, Price *price) : d(data),
 
 void Column::solve()
 {
-	cout << "Solving" << endl;
+	cout << "Solving";
+	int last = time(0);
 	while (true)
 	{
-		if (time(0) % 60 == 0)
-			cout << '.';
+		cout << '.' << flush;
+
 		m->solve();
 
 		for (int i = 0; i < d->nItems(); i++)
