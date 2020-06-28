@@ -3,18 +3,18 @@
 Price::Price(Data *input) : price(input->env(), input->nItems()),
 							newPatt(input->env(), input->nItems()),
 							patGen(input->env()),
-							Use(input->env(), input->nItems(), 0.0, 1, ILOINT),
+							x(input->env(), input->nItems(), 0.0, 1, ILOINT),
 							priceSolver(input->env())
 {
 	this->in = input;
 	patGen.setName("Knapsack");
 
 	for (int i = 0; i < in->nItems(); i++)
-		Use[i].setName(("I_" + to_string(i)).c_str());
+		x[i].setName(("x_" + to_string(i)).c_str());
 
 	ReducedCost = IloAdd(patGen, IloMinimize(in->env(), 1));
 	ReducedCost.setName("Obj");
-	patGen.add(IloScalProd(in->itemWeight(), Use) <= in->binCapacity());
+	patGen.add(IloScalProd(in->itemWeight(), x) <= in->binCapacity());
 
 	priceSolver.extract(patGen);
 	priceSolver.setOut(in->env().getNullStream());
@@ -24,14 +24,14 @@ void Price::addSameBinConstraint(vector<pair<int, int>> &pair)
 {
 	for (auto i : pair)
 	{
-		Use[i.first].setLB(1.0);
-		Use[i.second].setLB(1.0);
+		x[i.first].setLB(1.0);
+		x[i.second].setLB(1.0);
 	}
 }
 
 IloNumArray Price::newColumn()
 {
-	this->priceSolver.getValues(newPatt, Use);
+	this->priceSolver.getValues(newPatt, x);
 	return newPatt;
 }
 
@@ -42,7 +42,7 @@ IloNum Price::reducedCost()
 
 void Price::solve()
 {
-	ReducedCost.setLinearCoefs(Use, price);
+	ReducedCost.setLinearCoefs(x, price);
 	priceSolver.solve();
 }
 
