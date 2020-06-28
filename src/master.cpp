@@ -22,6 +22,7 @@ Master::Master(Data *input) : masterBinPacking(input->env()),
 
 void Master::addColumn(IloNumArray column)
 {
+	// cout<<column<<endl;
 	Lambda.add(IloNumVar(binsUsed(1) + Assignment(column)));
 }
 
