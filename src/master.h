@@ -24,6 +24,7 @@ public:
 	string getStatus();
 	void addColumn(IloNumArray column);
 	friend ostream &operator<<(ostream &out, Master &m);
+	std::vector<std::vector<int>> bin;
 private:
 	Data *in;
 	IloModel masterBinPacking;
