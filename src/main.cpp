@@ -3,6 +3,7 @@
 #include "master.h"
 #include "price.h"
 #include "column.h"
+#include "tree.h"
 
 int main(int argc, char **argv)
 {
