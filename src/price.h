@@ -19,12 +19,12 @@ public:
 	void solve();
 	IloNum reducedCost();
 	IloNumArray newColumn();
-
+	void addSameBinConstraint(vector<pair<int,int> > pair);
 private:
 	Data *in;
 	IloNumArray price;
 	IloModel patGen;
-	IloNumVarArray Use;
+	IloNumVarArray x;
 	IloObjective ReducedCost;
 	IloCplex priceSolver;
 	IloNumArray newPatt;
