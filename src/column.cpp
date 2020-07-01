@@ -1,5 +1,7 @@
 #include "column.h"
 
+#define EPSILON 1e-6
+
 Column::Column(Data *data, Master *master, Price *price) : d(data),
 														   m(master),
 														   p(price)
@@ -24,7 +26,7 @@ void Column::solve()
 		if (p->reducedCost() > -EPSILON)
 			break;
 		else
-			m->addColumn(p->newColumn());
+			m->addColumn(*p);
 	}
 	cout << "Done" << endl;
 }
