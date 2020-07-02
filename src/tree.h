@@ -21,10 +21,11 @@ public:
 	~Tree( );
 	double search();
 	pair<int, int> solve(Node& no, bool isRoot = false);
+	bool bound();
 	
 private:
 	pair<int,int> none;
-	int integerSolution;
+	double integerSolution;
 	Master* m;
 	Data* in;
 	list<Node> myTree;

@@ -42,7 +42,7 @@ private:
 	IloModel patGen;
 	Data *in;
 	IloNumArray price;	
-	IloNumVarArray x;
+	IloBoolVarArray x;
 	IloObjective ReducedCost;
 	IloCplex priceSolver;
 	IloNumArray newPatt;

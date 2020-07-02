@@ -13,9 +13,9 @@ int main(int argc, char **argv)
       Data input(argc, argv, &env);
       Master m(&input);
       Price p(&input);
-      Column c(&input,&m,&p);
-      c.solve();
-      c.result();
+      // Column c(&input,&m,&p);
+      // c.solve();
+      // c.result();
       Tree t(&input);
       cout<<t.search()<<" bins";
       return 0;

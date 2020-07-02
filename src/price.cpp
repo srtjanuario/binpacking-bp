@@ -3,7 +3,7 @@
 Price::Price(Data *input) : price(input->env(), input->nItems()),
 							newPatt(input->env(), input->nItems()),
 							patGen(input->env()),
-							x(input->env(), input->nItems(), 0.0, 1, ILOINT),
+							x(input->env(), input->nItems()),
 							priceSolver(input->env())
 {
 	this->in = input;
@@ -45,7 +45,11 @@ IloNum Price::reducedCost()
 
 void Price::solve()
 {
-	ReducedCost.setLinearCoefs(x, price);
+	IloExpr profit(in->env());
+	// profit+=1;
+	for (int i = 0; i < in->nItems(); i++)
+		profit -= price[i] * x[i] + 1;
+	ReducedCost.setExpr(profit);
 	priceSolver.solve();
 }
 

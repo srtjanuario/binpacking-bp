@@ -48,7 +48,7 @@ void Master::addColumn(Price &p)
 	// Memorize the new colum
 	bin.push_back(vector<bool>(in->nItems(), false));
 	for (int i = 0; i < p.newPatt.getSize(); i++)
-		bin.back()[i] = (p.newPatt[i] > 1 - EPSILON) ? true : false;
+		bin.back()[i] = (p.newPatt[i] > 0.9) ? true : false;
 }
 
 string Master::getStatus()
