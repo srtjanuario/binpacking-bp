@@ -20,13 +20,16 @@ Price::Price(Data *input) : price(input->env(), input->nItems()),
 	priceSolver.setOut(in->env().getNullStream());
 }
 
-void Price::addSameBinConstraint(vector<pair<int, int>> &pair)
-{
-	for (auto i : pair)
-	{
-		x[i.first].setLB(1.0);
-		x[i.second].setLB(1.0);
-	}
+Price::Price(Data *input, Node &n):Price(input){
+	
+	// Force items to stay together...
+	// It does not mean that the need to stay in the same bin :-)
+	for (auto &i : n.together_)
+		patGen.add(x[i.first] == x[i.second]);
+		
+	// Conflict constraint: at most one item can enter in this bin
+	for (auto &i : n.conflict_)
+		patGen.add(x[i.first] + x[i.second] <= 1);
 }
 
 IloNumArray Price::newColumn()
@@ -57,6 +60,17 @@ ostream &operator<<(ostream &out, Price &p)
 	// }
 	// out << endl;
 	return out;
+}
+
+string Price::getStatus()
+{
+	stringstream buffer;
+	buffer << priceSolver.getStatus();
+	return buffer.str();
+}
+
+bool Price::isFeasible(){
+	return !(this->priceSolver.getCplexStatus() == IloCplex::Infeasible);
 }
 
 void Price::setDual(IloNum var, IloNum dual)
