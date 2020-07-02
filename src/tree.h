@@ -2,6 +2,9 @@
 #define TREE_H_B_AND_P
 
 #include "node.h"
+#include "data.h"
+#include "master.h"
+#include "price.h"
 
 #include <ilcplex/ilocplex.h>
 
@@ -14,15 +17,17 @@ using namespace std;
 class Tree
 {
 public:
-	Tree();
-	double deepFirstSearch();
-	double breadthFirstSearch();
-	double bestBoundSearch();
+	Tree(Data* in);
+	~Tree( );
+	double search();
+	pair<int, int> solve(Node& no, bool isRoot = false);
+	
 private:
-	static double UB;
-	list<Node> bfsTree;
-	stack<Node> dfsTree;
-	priority_queue<Node, vector<Node>, CompareNode> bestTree;
+	pair<int,int> none;
+	int integerSolution;
+	Master* m;
+	Data* in;
+	list<Node> myTree;
 };
 
 #endif
