@@ -1,53 +1,170 @@
 #include "tree.h"
 
-double Tree::UB = 0;
+#define EPSILON 1e-6
+#define forn(n) for (int i = 0; i < (n); i++)
 
-Tree::Tree()
+Tree::Tree(Data *input) : in(input)
 {
+	m = new Master(in);
+	none = {0, 0};
+	integerSolution = numeric_limits<int>::infinity();
 }
 
-bool Tree::bestBoundSearch()
+Tree::~Tree()
+{
+	delete m;
+}
+
+pair<int, int> Tree::solve(Node &no, bool isRoot)
+{
+	try
+	{
+		Price p(this->in, no);
+		
+		cout<<p<<endl;
+    	// exit(0);
+
+		/* * *
+		 * Column generation phase
+		 * * */
+		while (true)
+		{
+			m->solve(no);
+			cout<<*m<<endl;
+			if (!m->isFeasible())
+				break;
+
+			forn(in->nItems())
+				p.setDual(i, m->getDual(i));
+
+			p.solve();
+
+			// Stop if pricing is not feasible
+			if (!p.isFeasible())
+				return m->reset();
+
+			// Break if there is no more columns to add
+			if (p.reducedCost() > -EPSILON)
+				break;
+
+			// Add column and memorize the new items
+			m->addColumn(p);
+		}
+
+		/* * *
+		 * Branching phase
+		 * * */
+		IloNumArray Lambda_value(in->env(), m->Lambda.getSize());
+		m->binPackingSolver.getValues(Lambda_value, m->Lambda);
+
+		/**
+		 * Reasons to Bound (it does not apply to the root node):
+		 * 	1) The current bound is worse than the best integer solution.
+		 * 	2) We are using artificial values.
+		 * */
+		if (!isRoot)
+		{
+			// 1) The current bound is worse than the best integer solution.
+			if (m->getObjValue() > integerSolution)
+				return m->reset();
+			// 2) We are using artificial values.
+			forn(in->nItems()) if (Lambda_value[i] > EPSILON) return m->reset();
+		}
+
+		double mostFractional = std::numeric_limits<double>::infinity();
+		std::pair<int, int> branchingPair;
+		// One i for each item
+		for (int i = 0; i < in->nItems(); i++)
+		{
+			// One j for each item, so i < j
+			for (int j = i + 1; j < in->nItems(); j++)
+			{
+				double accumulation = 0;
+				// One k for each new bin/column
+				for (int k = in->nItems(); k < m->bin.size(); k++)
+					/* * *
+					 * Every lambda represents a set of items
+					 * If two items are in the same bin and the 
+					 * lambda value is fractional we have to help 
+					 * the solver to verify if they should stay 
+					 * together in some bin or separated
+					 * * */
+					if (m->bin[k][i] == true && m->bin[k][j] == true)
+						accumulation += Lambda_value[k];
+				/* * *
+				 * Choose itens that are in the same bin, but 
+				 * their fractional values are closer to 0.5
+				 * * */
+				if (abs(0.5 - accumulation) < mostFractional)
+				{
+					branchingPair = {i, j};
+					mostFractional = abs(0.5 - accumulation);
+				}
+			}
+		}
+
+		cout<<Lambda_value<<endl;
+		cout<<m->binPackingSolver.getObjValue()<<"-"<<endl;
+		cout<<mostFractional<<endl;
+
+		// Check if we found an integer solution?
+		if (abs(0.5 - mostFractional) < EPSILON)
+		{
+			
+			integerSolution = (m->binPackingSolver.getObjValue() < integerSolution) ? m->binPackingSolver.getObjValue() : integerSolution;
+			cout<<integerSolution<<"*"<<endl;
+			return m->reset();
+		}
+
+		m->reset();
+
+		return branchingPair;
+	}
+	catch (IloException &ex)
+	{
+		cerr << "File" << __FILE__ << "-> " << __LINE__ << ": " << ex << endl;
+	}
+	catch (...)
+	{
+		cout << "Unknown error in file " << __FILE__ << endl;
+	}
+	// Supress warning: control may reach end of non-void function [-Wreturn-type]
+	return none;
+}
+
+double Tree::search()
 {
 	Node root;
-	bestBoundTree.push(root);
-
 	pair<int, int> ofspringCandidates;
+	ofspringCandidates = solve(root, true);
 
-	bestBoundTree.push(raiz);
+	Node nj, ns;
+	ns = root;
+	nj = root;
 
-	Node nutella;
+	nj.together_.push_back(ofspringCandidates);
+	ns.conflict_.push_back(ofspringCandidates);
 
-	while (!bestBoundTree.empty())
+	myTree.push_back(ns);
+	myTree.push_back(nj);
+
+	while (!myTree.empty())
 	{
-		// Select a node with the largest bound
-		nutella = bestBoundTree.top();
-		// if (!(nutella.bound < UB))
-		// {
-		// 	bestBoundTree.pop();
-		// 	continue;
-		// }
-		ofspringCandidates = nutella.pricing();
-		arvoreBest.pop();
-
-		if (!(branchingPair.first == 0 && branchingPair.second == 0) && !(node_it->LB > p.bestInteger))
+		Node nutella = myTree.front();
+		myTree.pop_front();
+		ofspringCandidates = solve(nutella);
+		if (ofspringCandidates != none)
 		{
 			Node nj, ns;
-			ns = *node_it;
-			nj = *node_it;
+			ns = nutella;
+			nj = nutella;
 
-			ns.is_root = false;
-			nj.is_root = false;
+			nj.together_.push_back(ofspringCandidates);
+			ns.conflict_.push_back(ofspringCandidates);
 
-			nj.juntos.push_back(branchingPair);
-			nj.tipo_branch = true;
-
-			ns.separados.push_back(branchingPair);
-			ns.tipo_branch = false;
-
-			tree.push_back(ns);
-			tree.push_back(nj);
+			myTree.push_back(ns);
+			myTree.push_back(nj);
 		}
 	}
-
-	return arvoreBest.empty();
+	return integerSolution;
 }
