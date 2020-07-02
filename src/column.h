@@ -13,8 +13,6 @@
 #include <iostream>
 using namespace std;
 
-#define EPSILON 1e-6
-
 class Column
 {
 public:
