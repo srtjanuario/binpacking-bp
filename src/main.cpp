@@ -16,15 +16,13 @@ int main(int argc, char **argv)
       Column c(&input,&m,&p);
       c.solve();
       c.result();
+      Tree t(&input);
+      cout<<t.search()<<" bins";
       return 0;
    }
    catch (IloException &ex)
    {
       cerr << "Error: " << ex << endl;
-   }
-   catch (const std::invalid_argument &ia)
-   {
-      cerr << "Error: " << ia.what() << endl;
    }
    catch (const std::invalid_argument &ia)
    {
