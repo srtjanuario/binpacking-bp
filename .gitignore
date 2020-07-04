@@ -30,11 +30,12 @@
 src/.DS_Store
 projetc.code-workspace
 .vscode/settings.json
+*.lp
+tiago.txt
 
 # Executables
 *.exe
 *.out
 *.app
-
-
 bpbp
+
