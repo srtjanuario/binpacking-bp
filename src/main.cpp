@@ -17,7 +17,7 @@ int main(int argc, char **argv)
       // c.solve();
       // c.result();
       Tree t(&input);
-      cout<<t.search()<<" bins";
+      cout<<t.search()<<" bins"<<endl;
       return 0;
    }
    catch (IloException &ex)

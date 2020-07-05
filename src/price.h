@@ -17,6 +17,7 @@ public:
 
 	// Give full access to Master class 
 	friend class Master;
+	friend class Tree;
 
 	// Create a single model
 	Price(Data *input);
@@ -36,16 +37,14 @@ public:
 	friend ostream &operator<<(ostream &out, Price &p);
 	void solve();
 	IloNum reducedCost();
-	IloNumArray newColumn();
 	void addSameBinConstraint(vector<pair<int,int> > pair);
 private:
-	IloModel patGen;
+	IloModel pricingModel;
 	Data *in;
 	IloNumArray price;	
 	IloBoolVarArray x;
 	IloObjective ReducedCost;
 	IloCplex priceSolver;
-	IloNumArray newPatt;
 };
 
 #endif

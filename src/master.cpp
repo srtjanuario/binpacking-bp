@@ -14,7 +14,7 @@ Master::Master(Data *input) : masterBinPacking(input->env()),
 	IloExpr sum(input->env());
 	for (int i = 0; i < input->nItems(); i++)
 	{
-		Lambda[i].setName(("L_" + to_string(i)).c_str());
+		Lambda[i].setName(("l" + to_string(i)).c_str());
 		Assignment.add(Lambda[i] == 1); // <-- I don't know why I need to assign Lambda[i] == 1  \o\ \o| |o| |o/ /o/
 		sum += M * Lambda[i];
 	}
@@ -36,19 +36,20 @@ Master::Master(Data *input) : masterBinPacking(input->env()),
 void Master::addColumn(Price &p)
 {
 	// Adjusting pricing variables
-	p.priceSolver.getValues(p.newPatt, p.x);
-	for (int i = 0; i < p.newPatt.getSize(); i++)
-		p.newPatt[i] = (p.newPatt[i] > 0.9) ? 1 : 0;
+	IloNumArray x_values(in->env(), in->nItems());
+	p.priceSolver.getValues(x_values, p.x);
+	for (int i = 0; i < x_values.getSize(); i++)
+		x_values[i] = (x_values[i] > 0.9) ? 1 : 0;
 
 	// Adding the new column
-	IloNumVar newColumn(binsUsed(1) + Assignment(p.newPatt),0,IloInfinity);
-	newColumn.setName(("L_" + to_string(Lambda.getSize())).c_str());
+	IloNumVar newColumn(binsUsed(1) + Assignment(x_values),0,IloInfinity);
+	newColumn.setName(("l" + to_string(Lambda.getSize())).c_str());
 	Lambda.add(newColumn);
 
 	// Memorize the new colum
 	bin.push_back(vector<bool>(in->nItems(), false));
-	for (int i = 0; i < p.newPatt.getSize(); i++)
-		bin.back()[i] = (p.newPatt[i] > 0.9) ? true : false;
+	for (int i = 0; i < x_values.getSize(); i++)
+		bin.back()[i] = (x_values[i] > 0.9) ? true : false;
 }
 
 string Master::getStatus()
@@ -76,6 +77,7 @@ void Master::solve(Node &no)
 	 * */
 	for (int b = in->nItems(); b < bin.size(); b++)
 	{
+		Lambda[b].setUB(IloInfinity);
 		/**
 		 * Problem: two items must stay together, either
 		 * 			inside bin b or not

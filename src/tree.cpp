@@ -15,18 +15,62 @@ Tree::~Tree()
 	delete m;
 }
 
+void Tree::debug(Master* m, Node &node){
+	cout<<"J -> ";
+	for(auto n: node.together_)
+        printf("(%d,%d) ",n.first,n.second);
+    cout<<endl;
+	cout<<"S -> ";
+    for(auto n: node.conflict_)
+        printf("(%d,%d) ",n.first,n.second);
+    cout<<endl;
+
+	IloNumArray Lambda_value(in->env(), m->Lambda.getSize());
+	m->binPackingSolver.getValues(Lambda_value, m->Lambda);
+
+	cout << Lambda_value.getSize() << " ~ ";
+	forn(Lambda_value.getSize())
+			cout
+		<< Lambda_value[i] << " ";
+	cout << endl;
+
+	for(int i = 0; i < m->bin.size(); i++){
+		if(Lambda_value[i]==1)
+			cout<<"Bin ["<<i<<"] = ";
+		else
+			cout<<"    ["<<i<<"] = ";
+		for(int j = 0; j < m->bin.size(); j++)
+		{
+			if(m->bin[i][j])
+				cout<<j<<" ";
+		}
+		cout<<endl;
+	}
+	if(Lambda_value.getSize() >= 10){
+		cout<<m->masterBinPacking<<endl;
+		cout<<m->Lambda<<endl;
+	}
+
+}
+
 pair<int, int> Tree::solve(Node &no, bool isRoot)
 {
+
+	Price p(this->in, no);	
+
 	try
 	{
 		/* * *
 		 * Column generation phase
 		 * * */
+		m->solve(no);
+		debug(m,no);
+		// if(m->Lambda.getSize()>=10){
+		// 	m->binPackingSolver.exportModel(("tiago"+to_string(m->Lambda.getSize())+".lp").c_str());
+		// }
+		
 		while (true)
 		{
-			m->solve(no);
-			
-			Price p(this->in, no);	
 			
 			if (!m->isFeasible())
 				break;
@@ -34,22 +78,21 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 			forn(in->nItems())
 				p.setDual(i, m->getDual(i));
 
-			cout<<p<<endl;
 			p.solve();
-			exit(0);
-
 			// Stop if pricing is not feasible
 			if (!p.isFeasible())	
 				return m->reset();
-			
 
 			// Break if there is no more columns to add
-			cout<<p.reducedCost()<<endl;
+			// cout<<p.reducedCost()<<endl;
 			if (p.reducedCost() > -EPSILON)
 				break;
 
 			// Add column and memorize the new items
 			m->addColumn(p);
+
+			m->solve();
+			debug(m,no);
 		}
 
 		/* * *
@@ -58,10 +101,10 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 		IloNumArray Lambda_value(in->env(), m->Lambda.getSize());
 		m->binPackingSolver.getValues(Lambda_value, m->Lambda);
 
-		cout << Lambda_value.getSize() << " - ";
-		forn(Lambda_value.getSize())
-			cout << Lambda_value[i] << " ";
-		cout << endl;
+		// cout << Lambda_value.getSize() << " - ";
+		// forn(Lambda_value.getSize())
+		// 	cout << Lambda_value[i] << " ";
+		// cout << endl;
 
 		/**
 		 * Reasons to Bound (it does not apply to the root node):
@@ -70,9 +113,6 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 		 * */
 		if (!isRoot)
 		{
-			// 1) The current bound is worse than the best integer solution.
-			if (ceil(m->getObjValue()) >= integerSolution)
-				return m->reset();
 
 			// 2) We are still using artificial values.
 			forn(in->nItems()) {
@@ -81,6 +121,10 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 					return m->reset();
 				}
 			}
+
+			// 1) The current bound is worse than the best integer solution.
+			if (ceil(m->getObjValue() - EPSILON) - integerSolution >= 0)
+				return m->reset();
 		}
 
 		double mostFractional = std::numeric_limits<double>::infinity();
@@ -137,6 +181,7 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 		cout << "Unknown error in file " << __FILE__ << endl;
 	}
 	// Supress warning: control may reach end of non-void function [-Wreturn-type]
+	cout<<"Warning: control reached end of non-void function [-Wreturn-type]"<<endl;
 	return none;
 }
 
@@ -159,8 +204,8 @@ double Tree::search()
 	while (!myTree.empty())
 	{
 		// cout<<myTree.size()<<endl;
-		Node nutella = myTree.front();
-		myTree.pop_front();
+		Node nutella = myTree.back();
+		myTree.pop_back();
 		ofspringCandidates = solve(nutella);
 		if (ofspringCandidates != none)
 		{

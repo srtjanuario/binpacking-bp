@@ -22,6 +22,7 @@ public:
 	double search();
 	pair<int, int> solve(Node& no, bool isRoot = false);
 	bool bound();
+	void debug(Master *, Node &node);
 	
 private:
 	pair<int,int> none;

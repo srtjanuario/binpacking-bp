@@ -20,7 +20,7 @@ void Column::solve()
 
 		for (int i = 0; i < d->nItems(); i++)
 			p->setDual(i, m->getDual(i));
-
+		
 		p->solve();
 
 		if (p->reducedCost() > -EPSILON)
