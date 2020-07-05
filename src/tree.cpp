@@ -70,13 +70,17 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 		 * * */
 		while (true)
 		{
+			// Solver master problem
 			m->solve();
 
+			// Get dual variables
 			forn(in->nItems())
 				p.setDual(i, m->getDual(i));
 
+			// Solve pricing
 			p.solve();
 
+			// Check it there is a new column
 			if (p.reducedCost() > -EPSILON)
 				break;
 
@@ -90,11 +94,6 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 		IloNumArray Lambda_value(in->env(), m->Lambda.getSize());
 		m->binPackingSolver.getValues(Lambda_value, m->Lambda);
 
-		// cout << Lambda_value.getSize() << " - ";
-		// forn(Lambda_value.getSize())
-		// 	cout << Lambda_value[i] << " ";
-		// cout << endl;
-
 		/**
 		 * Reasons to Bound (it does not apply to the root node):
 		 * 	1) The current bound is worse than the best integer solution.
@@ -102,20 +101,13 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 		 * */
 		if (!isRoot)
 		{
-
-			// 2) We are still using artificial values.
-			forn(in->nItems())
-			{
-				if (Lambda_value[i] > EPSILON)
-				{
-					cout << "We are using artificial values." << endl;
-					return m->reset();
-				}
-			}
-
 			// 1) The current bound is worse than the best integer solution.
 			if (ceil(m->getObjValue() - EPSILON) - integerSolution >= 0)
 				return m->reset();
+			// 2) We are still using artificial values.
+			forn(in->nItems())
+				if (Lambda_value[i] > EPSILON)		
+					return m->reset();
 		}
 
 		double mostFractional = std::numeric_limits<double>::infinity();
@@ -150,8 +142,6 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 			}
 		}
 
-		// cout<<mostFractional<<endl;
-
 		// Check if we found an integer solution?
 		if (fabs(0.5 - mostFractional) < EPSILON)
 		{
@@ -159,6 +149,7 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 			return m->reset();
 		}
 
+		// Clean master for the next node
 		m->reset();
 
 		return branchingPair;
@@ -176,41 +167,33 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 	return none;
 }
 
-double Tree::search()
-{
-	Node root;
-	pair<int, int> ofspringCandidates;
-	ofspringCandidates = solve(root, true);
-
+void Tree::branch(Node& no, pair<int, int> &ofspringCandidates){
 	Node nj, ns;
-	ns = root;
-	nj = root;
+	ns = no;
+	nj = no;
 
 	nj.together_.push_back(ofspringCandidates);
 	ns.conflict_.push_back(ofspringCandidates);
 
 	myTree.push_back(ns);
 	myTree.push_back(nj);
+}
+
+
+double Tree::search()
+{
+	Node root;
+	pair<int, int> ofspringCandidates;
+	ofspringCandidates = solve(root, true);
+	branch(root,ofspringCandidates);
 
 	while (!myTree.empty())
 	{
-		// cout<<myTree.size()<<endl;
 		Node nutella = myTree.back();
 		myTree.pop_back();
 		ofspringCandidates = solve(nutella);
 		if (ofspringCandidates != none)
-		{
-			// cout<<ofspringCandidates.first<<" "<<ofspringCandidates.second<<endl;
-			Node nj, ns;
-			ns = nutella;
-			nj = nutella;
-
-			nj.together_.push_back(ofspringCandidates);
-			ns.conflict_.push_back(ofspringCandidates);
-
-			myTree.push_back(ns);
-			myTree.push_back(nj);
-		}
+			branch(nutella,ofspringCandidates);
 	}
 	return integerSolution;
 }

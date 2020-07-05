@@ -37,7 +37,7 @@ public:
 	friend ostream &operator<<(ostream &out, Price &p);
 	void solve();
 	IloNum reducedCost();
-	void addSameBinConstraint(vector<pair<int,int> > pair);
+	
 private:
 	IloModel pricingModel;
 	Data *in;

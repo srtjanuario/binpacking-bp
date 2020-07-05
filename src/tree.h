@@ -20,6 +20,7 @@ public:
 	Tree(Data *in);
 	~Tree();
 	double search();
+	void branch(Node &no, pair<int, int> &ofspringCandidates);
 	pair<int, int> solve(Node &no, bool isRoot = false);
 	void debug(Master *, Node &node);
 
