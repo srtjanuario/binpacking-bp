@@ -145,7 +145,7 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 				if (fabs(0.5 - accumulation) < mostFractional)
 				{
 					branchingPair = {i, j};
-					mostFractional = abs(0.5 - accumulation);
+					mostFractional = fabs(0.5 - accumulation);
 				}
 			}
 		}
@@ -153,7 +153,7 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 		// cout<<mostFractional<<endl;
 
 		// Check if we found an integer solution?
-		if (abs(0.5 - mostFractional) < EPSILON)
+		if (fabs(0.5 - mostFractional) < EPSILON)
 		{
 			integerSolution = (m->binPackingSolver.getObjValue() < integerSolution) ? m->binPackingSolver.getObjValue() : integerSolution;
 			return m->reset();
