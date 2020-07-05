@@ -17,18 +17,17 @@ using namespace std;
 class Tree
 {
 public:
-	Tree(Data* in);
-	~Tree( );
+	Tree(Data *in);
+	~Tree();
 	double search();
-	pair<int, int> solve(Node& no, bool isRoot = false);
-	bool bound();
+	pair<int, int> solve(Node &no, bool isRoot = false);
 	void debug(Master *, Node &node);
-	
+
 private:
-	pair<int,int> none;
+	pair<int, int> none;
 	double integerSolution;
-	Master* m;
-	Data* in;
+	Master *m;
+	Data *in;
 	list<Node> myTree;
 };
 

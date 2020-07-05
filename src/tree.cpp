@@ -223,8 +223,3 @@ double Tree::search()
 	}
 	return integerSolution;
 }
-
-bool Tree::bound(){
-
-	return false;
-}
