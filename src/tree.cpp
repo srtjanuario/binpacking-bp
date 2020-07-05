@@ -15,15 +15,16 @@ Tree::~Tree()
 	delete m;
 }
 
-void Tree::debug(Master* m, Node &node){
-	cout<<"J -> ";
-	for(auto n: node.together_)
-        printf("(%d,%d) ",n.first,n.second);
-    cout<<endl;
-	cout<<"S -> ";
-    for(auto n: node.conflict_)
-        printf("(%d,%d) ",n.first,n.second);
-    cout<<endl;
+void Tree::debug(Master *m, Node &node)
+{
+	cout << "J -> ";
+	for (auto n : node.together_)
+		printf("(%d,%d) ", n.first, n.second);
+	cout << endl;
+	cout << "S -> ";
+	for (auto n : node.conflict_)
+		printf("(%d,%d) ", n.first, n.second);
+	cout << endl;
 
 	IloNumArray Lambda_value(in->env(), m->Lambda.getSize());
 	m->binPackingSolver.getValues(Lambda_value, m->Lambda);
@@ -34,65 +35,53 @@ void Tree::debug(Master* m, Node &node){
 		<< Lambda_value[i] << " ";
 	cout << endl;
 
-	for(int i = 0; i < m->bin.size(); i++){
-		if(Lambda_value[i]==1)
-			cout<<"Bin ["<<i<<"] = ";
+	for (int i = 0; i < m->bin.size(); i++)
+	{
+		if (Lambda_value[i] == 1)
+			cout << "Bin [" << i << "] = ";
 		else
-			cout<<"    ["<<i<<"] = ";
-		for(int j = 0; j < m->bin.size(); j++)
+			cout << "    [" << i << "] = ";
+		for (int j = 0; j < m->bin.size(); j++)
 		{
-			if(m->bin[i][j])
-				cout<<j<<" ";
+			if (m->bin[i][j])
+				cout << j << " ";
 		}
-		cout<<endl;
+		cout << endl;
 	}
-	if(Lambda_value.getSize() >= 10){
-		cout<<m->masterBinPacking<<endl;
-		cout<<m->Lambda<<endl;
+	if (Lambda_value.getSize() >= 10)
+	{
+		cout << m->masterBinPacking << endl;
+		cout << m->Lambda << endl;
 	}
-
 }
 
 pair<int, int> Tree::solve(Node &no, bool isRoot)
 {
-
-	Price p(this->in, no);	
-
+	/* * *
+	* Restricted pricing problem
+	* * */
+	Price p(this->in, no);
 	try
 	{
+		m->updateBranchingRules(no);
+		
 		/* * *
 		 * Column generation phase
 		 * * */
-		m->solve(no);
-		debug(m,no);
-		// if(m->Lambda.getSize()>=10){
-		// 	m->binPackingSolver.exportModel(("tiago"+to_string(m->Lambda.getSize())+".lp").c_str());
-		// }
-		
 		while (true)
 		{
-			
-			if (!m->isFeasible())
-				break;
+			m->solve();
 
 			forn(in->nItems())
 				p.setDual(i, m->getDual(i));
 
 			p.solve();
-			// Stop if pricing is not feasible
-			if (!p.isFeasible())	
-				return m->reset();
 
-			// Break if there is no more columns to add
-			// cout<<p.reducedCost()<<endl;
 			if (p.reducedCost() > -EPSILON)
 				break;
 
 			// Add column and memorize the new items
 			m->addColumn(p);
-
-			m->solve();
-			debug(m,no);
 		}
 
 		/* * *
@@ -115,9 +104,11 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 		{
 
 			// 2) We are still using artificial values.
-			forn(in->nItems()) {
-				if (Lambda_value[i] > EPSILON) {
-					cout<<"We are using artificial values."<<endl;
+			forn(in->nItems())
+			{
+				if (Lambda_value[i] > EPSILON)
+				{
+					cout << "We are using artificial values." << endl;
 					return m->reset();
 				}
 			}
@@ -181,7 +172,7 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 		cout << "Unknown error in file " << __FILE__ << endl;
 	}
 	// Supress warning: control may reach end of non-void function [-Wreturn-type]
-	cout<<"Warning: control reached end of non-void function [-Wreturn-type]"<<endl;
+	cout << "Warning: control reached end of non-void function [-Wreturn-type]" << endl;
 	return none;
 }
 

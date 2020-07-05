@@ -20,9 +20,10 @@ class Master
 public:
 	Master(Data *input);
 	void solve();
-	void solve(Node &no);
 	void solveIP();
 	friend class Tree;
+
+	void updateBranchingRules(Node &no);
 
 	pair<int,int> reset();
 

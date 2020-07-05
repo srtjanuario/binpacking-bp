@@ -69,11 +69,11 @@ IloNum Master::getDual(IloNum var)
 	return binPackingSolver.getDual(Assignment[var]);
 }
 
-void Master::solve(Node &no)
+void Master::updateBranchingRules(Node &no)
 {
 
 	/**
-	 * Include branching rules for extra columns
+	 * Include branching rules
 	 * */
 	for (int b = in->nItems(); b < bin.size(); b++)
 	{
@@ -97,19 +97,20 @@ void Master::solve(Node &no)
 			if (bin[b][item.first] && bin[b][item.second])
 				Lambda[b].setUB(0.0);
 	}
-	binPackingSolver.solve();
 }
 
+// Solver the Master problem
 void Master::solve()
 {
 	binPackingSolver.solve();
 }
 
+// Convert variable so ILOBOOL and solve the problem
 void Master::solveIP()
 {
 	if (!MIP)
 	{
-		masterBinPacking.add(IloConversion(in->env(), Lambda, ILOINT));
+		masterBinPacking.add(IloConversion(in->env(), Lambda, ILOBOOL));
 		MIP = true;
 	}
 	binPackingSolver.solve();

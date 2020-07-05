@@ -35,5 +35,5 @@ void Column::result()
 {
 	m->solveIP();
 	cout << "Solution status: " << m->getStatus() << endl;
-	m->getObjValue();
+	cout<<m->getObjValue()<<" bins"<<endl;
 }
