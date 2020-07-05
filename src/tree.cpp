@@ -146,6 +146,15 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 		if (fabs(0.5 - mostFractional) < EPSILON)
 		{
 			integerSolution = (m->binPackingSolver.getObjValue() < integerSolution) ? m->binPackingSolver.getObjValue() : integerSolution;
+			storage.resize(integerSolution);
+			for(int k = 0,j=0; k < Lambda_value.getSize(); k++){
+				if(Lambda_value[k] > 0.9){
+					for (int i = 0; i < in->nItems(); i++)
+						if(m->bin[k][i] == true)
+							storage[j].push_back(i);
+					j++;
+				}
+			}
 			return m->reset();
 		}
 
@@ -196,4 +205,18 @@ double Tree::search()
 			branch(nutella,ofspringCandidates);
 	}
 	return integerSolution;
+}
+
+ostream &operator<<(ostream &out, const Tree &t)
+{
+	out << t.integerSolution <<" bins"<<endl;
+	int b = 1;
+	for(auto bin: t.storage){
+		cout<<"Bin["<<b<<"] = ";
+		for(auto i:bin)
+			cout<<i+1<<" ";
+		cout<<endl;
+		b++;
+	}
+	return out;
 }

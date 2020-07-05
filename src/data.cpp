@@ -25,6 +25,7 @@ Data::Data(int argc, char **argv, IloEnv &env) : itemWeight_(env)
 Data::~Data()
 {
 	itemWeight_.end();
+	env_.end();
 }
 
 IloEnv Data::env() const
