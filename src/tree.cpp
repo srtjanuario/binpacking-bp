@@ -142,7 +142,7 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 				 * Choose itens that are in the same bin, but 
 				 * their fractional values are closer to 0.5
 				 * * */
-				if (abs(0.5 - accumulation) < mostFractional)
+				if (fabs(0.5 - accumulation) < mostFractional)
 				{
 					branchingPair = {i, j};
 					mostFractional = abs(0.5 - accumulation);
