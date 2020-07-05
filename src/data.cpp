@@ -1,12 +1,12 @@
 #include "data.h"
 
-Data::Data(int argc, char **argv, IloEnv *env) : itemWeight_(*env)
+Data::Data(int argc, char **argv, IloEnv &env) : itemWeight_(env)
 {
 	if (argc < 2)
 		throw invalid_argument("Plese, give me an input file");
 
-	env_ = *env;
-	
+	env_ = env;
+
 	ifstream in(argv[1]);
 	if (in)
 	{
@@ -21,6 +21,10 @@ Data::Data(int argc, char **argv, IloEnv *env) : itemWeight_(*env)
 	}
 	else
 		throw runtime_error("File not found");
+}
+Data::~Data()
+{
+	itemWeight_.end();
 }
 
 IloEnv Data::env() const
@@ -38,12 +42,8 @@ IloNum Data::nItems() const
 	return this->nItems_;
 }
 
-IloNum Data::itemWeight(IloNum i) const
+IloNumArray Data::itemWeight()
 {
-	return this->itemWeight_[i];
-}
-
-IloNumArray Data::itemWeight(){
 	return this->itemWeight_;
 }
 
@@ -52,6 +52,6 @@ ostream &operator<<(ostream &out, const Data &d)
 	out << d.nItems() << endl;
 	out << d.binCapacity() << endl;
 	for (int i = 0; i < d.nItems(); i++)
-		cout << d.itemWeight(i) << endl;
+		cout << d.itemWeight_[i] << endl;
 	return out;
 }

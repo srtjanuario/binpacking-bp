@@ -11,11 +11,11 @@ using namespace std;
 class Data
 {
 public:
-	Data(int argc, char **argv,IloEnv *env_);
+	Data(int argc, char **argv,IloEnv &env_);
+	~Data();
 	IloEnv env() const;
 	IloNum binCapacity() const;
 	IloNum nItems() const;
-	IloNum itemWeight(IloNum i) const;
 	IloNumArray itemWeight();
 
 	friend ostream& operator<<(ostream &out,const Data &d);

@@ -10,7 +10,7 @@ int main(int argc, char **argv)
    try
    {
       IloEnv env;
-      Data input(argc, argv, &env);
+      Data input(argc, argv, env);
       Master m(&input);
       Price p(&input);
       // Column c(&input,&m,&p);
