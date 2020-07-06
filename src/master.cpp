@@ -33,16 +33,24 @@ Master::Master(Data *input) : masterBinPacking(input->env()),
 		bin[i][i] = true;
 }
 
-void Master::addColumn(Price &p)
+void Master::addColumn(Price &p, bool isRoot)
 {
 	// Adjusting pricing variables
 	IloNumArray x_values(in->env(), in->nItems());
-	p.priceSolver.getValues(x_values, p.x);
-	for (int i = 0; i < x_values.getSize(); i++)
-		x_values[i] = (x_values[i] > 0.9) ? 1 : 0;
+	if (isRoot)
+	{
+		for (int i = 0; i < in->nItems(); i++)
+			x_values[i] = p.xFast[i];
+	}
+	else
+	{
+		p.priceSolver.getValues(x_values, p.x);
+		for (int i = 0; i < x_values.getSize(); i++)
+			x_values[i] = (x_values[i] > 0.9) ? 1 : 0;
+	}
 
 	// Adding the new column
-	IloNumVar newColumn(binsUsed(1) + Assignment(x_values),0,IloInfinity);
+	IloNumVar newColumn(binsUsed(1) + Assignment(x_values), 0, IloInfinity);
 	newColumn.setName(("l" + to_string(Lambda.getSize())).c_str());
 	Lambda.add(newColumn);
 
@@ -64,10 +72,18 @@ bool Master::isFeasible()
 	return !(this->binPackingSolver.getCplexStatus() == IloCplex::Infeasible);
 }
 
-void Master::getDual(Price &p)
+void Master::getDual(Price &price, bool isRoot)
 {
-	forn(in->nItems())
-		p.setDual(i, binPackingSolver.getDual(Assignment[i]));
+	if (isRoot)
+	{
+		for (int i = 0; i < in->nItems(); i++)
+			price.p[i] = (binPackingSolver.getDual(Assignment[i]) > 0) ? in->factor * binPackingSolver.getDual(Assignment[i]) : 0;
+	}
+	else
+	{
+		forn(in->nItems())
+			price.setDual(i, binPackingSolver.getDual(Assignment[i]));
+	}
 }
 
 void Master::updateBranchingRules(Node &no)

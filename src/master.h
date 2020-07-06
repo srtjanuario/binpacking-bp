@@ -28,7 +28,7 @@ public:
 	// Returns a double value with the objective value from variable binPackingSolver
 	double getObjValue();
 	void debug();
-	void getDual(Price &p);
+	void getDual(Price &p,bool isRoot = false);
 
 	// Returns the Feasibility status of binPackingSolver
 	bool isFeasible();
@@ -37,7 +37,7 @@ public:
 	string getStatus();
 
 	// Add column c to the model
-	void addColumn(Price &p);
+	void addColumn(Price &p, bool isRoot = false);
 	
 	// Collection of itens inside the bin
 	vector<vector<bool>> bin;
