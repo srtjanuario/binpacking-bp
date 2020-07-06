@@ -64,7 +64,7 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 	try
 	{
 		m->updateBranchingRules(no);
-		
+
 		/* * *
 		 * Column generation phase
 		 * * */
@@ -73,9 +73,8 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 			// Solver master problem
 			m->solve();
 
-			// Get dual variables
-			forn(in->nItems())
-				p.setDual(i, m->getDual(i));
+			// Get dual variable values
+			m->getDual(p);
 
 			// Solve pricing
 			p.solve();
@@ -99,16 +98,8 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 		 * 	1) The current bound is worse than the best integer solution.
 		 * 	2) We are using artificial values.
 		 * */
-		if (!isRoot)
-		{
-			// 1) The current bound is worse than the best integer solution.
-			if (ceil(m->getObjValue() - EPSILON) - integerSolution >= 0)
-				return m->reset();
-			// 2) We are still using artificial values.
-			forn(in->nItems())
-				if (Lambda_value[i] > EPSILON)		
-					return m->reset();
-		}
+		if (!isRoot && bound())
+			return m->reset();
 
 		double mostFractional = std::numeric_limits<double>::infinity();
 		std::pair<int, int> branchingPair;
@@ -147,10 +138,12 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 		{
 			integerSolution = (m->binPackingSolver.getObjValue() < integerSolution) ? m->binPackingSolver.getObjValue() : integerSolution;
 			storage.resize(integerSolution);
-			for(int k = 0,j=0; k < Lambda_value.getSize(); k++){
-				if(Lambda_value[k] > 0.9){
+			for (int k = 0, j = 0; k < Lambda_value.getSize(); k++)
+			{
+				if (Lambda_value[k] > 0.9)
+				{
 					for (int i = 0; i < in->nItems(); i++)
-						if(m->bin[k][i] == true)
+						if (m->bin[k][i] == true)
 							storage[j].push_back(i);
 					j++;
 				}
@@ -176,7 +169,8 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 	return none;
 }
 
-void Tree::branch(Node& no, pair<int, int> &ofspringCandidates){
+void Tree::branch(Node &no, pair<int, int> &ofspringCandidates)
+{
 	Node nj, ns;
 	ns = no;
 	nj = no;
@@ -188,13 +182,12 @@ void Tree::branch(Node& no, pair<int, int> &ofspringCandidates){
 	myTree.push_back(nj);
 }
 
-
 double Tree::search()
 {
 	Node root;
 	pair<int, int> ofspringCandidates;
 	ofspringCandidates = solve(root, true);
-	branch(root,ofspringCandidates);
+	branch(root, ofspringCandidates);
 
 	while (!myTree.empty())
 	{
@@ -202,21 +195,34 @@ double Tree::search()
 		myTree.pop_back();
 		ofspringCandidates = solve(nutella);
 		if (ofspringCandidates != none)
-			branch(nutella,ofspringCandidates);
+			branch(nutella, ofspringCandidates);
 	}
 	return integerSolution;
 }
 
 ostream &operator<<(ostream &out, const Tree &t)
 {
-	out << t.integerSolution <<" bins"<<endl;
+	out << t.integerSolution << " bins" << endl;
 	int b = 1;
-	for(auto bin: t.storage){
-		cout<<"Bin["<<b<<"] = ";
-		for(auto i:bin)
-			cout<<i+1<<" ";
-		cout<<endl;
+	for (auto bin : t.storage)
+	{
+		cout << "Bin[" << b << "] = ";
+		for (auto i : bin)
+			cout << i + 1 << " ";
+		cout << endl;
 		b++;
 	}
 	return out;
+}
+
+bool Tree::bound()
+{
+	// 1) The current bound is worse than the best integer solution.
+	if (ceil(m->getObjValue() - EPSILON) - integerSolution >= 0)
+		return true;
+	// 2) We are still using artificial values.
+	forn(in->nItems()) 
+		if (m->binPackingSolver.getValue(m->Lambda[i]) > EPSILON) 
+			return true;
+	return false;
 }

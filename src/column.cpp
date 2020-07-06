@@ -18,9 +18,8 @@ void Column::solve()
 
 		m->solve();
 
-		for (int i = 0; i < d->nItems(); i++)
-			p->setDual(i, m->getDual(i));
-		
+		m->getDual(*p);
+
 		p->solve();
 
 		if (p->reducedCost() > -EPSILON)
@@ -35,5 +34,5 @@ void Column::result()
 {
 	m->solveIP();
 	cout << "Solution status: " << m->getStatus() << endl;
-	cout<<m->getObjValue()<<" bins"<<endl;
+	cout << m->getObjValue() << " bins" << endl;
 }

@@ -30,7 +30,7 @@ public:
 	// Returns a double value with the objective value from variable binPackingSolver
 	double getObjValue();
 	void debug();
-	IloNum getDual(IloNum var);
+	void getDual(Price &p);
 
 	// Returns the Feasibility status of binPackingSolver
 	bool isFeasible();

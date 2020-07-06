@@ -24,7 +24,7 @@ public:
 	pair<int, int> solve(Node &no, bool isRoot = false);
 	void debug(Master *, Node &node);
 	friend ostream& operator<<(ostream &out,const Tree &t);
-
+	bool bound();
 private:
 	pair<int, int> none;
 	double integerSolution;

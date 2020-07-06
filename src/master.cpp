@@ -64,9 +64,10 @@ bool Master::isFeasible()
 	return !(this->binPackingSolver.getCplexStatus() == IloCplex::Infeasible);
 }
 
-IloNum Master::getDual(IloNum var)
+void Master::getDual(Price &p)
 {
-	return binPackingSolver.getDual(Assignment[var]);
+	forn(in->nItems())
+		p.setDual(i, binPackingSolver.getDual(Assignment[i]));
 }
 
 void Master::updateBranchingRules(Node &no)

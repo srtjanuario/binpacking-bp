@@ -22,7 +22,6 @@ Price::Price(Data *input) : price(input->env(), input->nItems()),
 Price::Price(Data *input, Node &n):Price(input){
 	
 	// Force items to stay together...
-	// It does not mean that the need to stay in the same bin :-)
 	for (auto &i : n.together_)
 		pricingModel.add(x[i.first] == x[i.second]);
 		
@@ -38,26 +37,14 @@ IloNum Price::reducedCost()
 
 void Price::solve()
 {
-	IloExpr profit(in->env());
-	// profit+=1;
-	for (int i = 0; i < in->nItems(); i++)
-		profit -= price[i] * x[i];
-	ReducedCost.setExpr(1-profit);
+	ReducedCost.setExpr(1+IloScalProd(price, x));
 	priceSolver.extract(pricingModel);
-	priceSolver.setOut(in->env().getNullStream());
 	priceSolver.solve();
 }
 
 ostream &operator<<(ostream &out, Price &p)
 {
 	out << p.pricingModel << endl;
-	// for (int i = 0; i < m.in->nItems(); i++)
-	// {
-	// 	out << m.Lambda[i];
-	// 	if (i < m.in->nItems() - 1)
-	// 		out << ", ";
-	// }
-	// out << endl;
 	return out;
 }
 

@@ -19,6 +19,7 @@ public:
 	Column(Data *data, Master *master, Price *price);
 	void solve();
 	void result();
+
 private:
 	Data *d;
 	Master *m;
