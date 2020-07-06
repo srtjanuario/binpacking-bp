@@ -17,9 +17,10 @@ public:
 	IloNum binCapacity() const;
 	IloNum nItems() const;
 	IloNumArray itemWeight();
-
 	friend ostream& operator<<(ostream &out,const Data &d);
-private:
+	const double factor = 1000000;
+// private:
+	
 	IloEnv env_;
 	IloNum binCapacity_;
 	IloNum nItems_;
