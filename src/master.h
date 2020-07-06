@@ -25,8 +25,6 @@ public:
 
 	void updateBranchingRules(Node &no);
 
-	pair<int,int> reset();
-
 	// Returns a double value with the objective value from variable binPackingSolver
 	double getObjValue();
 	void debug();
