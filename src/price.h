@@ -3,6 +3,7 @@
 
 #include "data.h"
 #include "node.h"
+#include "minknap.h"
 
 // CPLEX
 #include <ilcplex/ilocplex.h>
@@ -22,6 +23,8 @@ public:
 	// Create a single model
 	Price(Data *input);
 
+	~Price();
+
 	// Create a model with extra constraints available in Node no
 	Price(Data *input, Node &no);
 
@@ -35,10 +38,13 @@ public:
 	void setDual(IloNum var, IloNum dual);
 	
 	friend ostream &operator<<(ostream &out, Price &p);
-	void solve();
-	IloNum reducedCost();
-	
+	void solve(bool isRoot = false);
+	IloNum reducedCost(bool isRoot = false);
+	double rc;
 private:
+	int* p;
+	int* w;
+	int* xFast;
 	IloModel pricingModel;
 	Data *in;
 	IloNumArray price;	

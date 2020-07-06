@@ -17,6 +17,19 @@ Price::Price(Data *input) : price(input->env(), input->nItems()),
 
 	priceSolver.extract(pricingModel);
 	priceSolver.setOut(in->env().getNullStream());
+	
+	xFast = new int[in->nItems()];
+    p = new int[in->nItems()];
+    w = new int[in->nItems()];
+
+	for (int i = 0; i < in->nItems(); i++)
+         w[i] = in->itemWeight_[i];
+}
+
+Price::~Price(){
+	delete [] p;
+	delete [] w;
+	delete [] xFast;
 }
 
 Price::Price(Data *input, Node &n):Price(input){
@@ -30,16 +43,24 @@ Price::Price(Data *input, Node &n):Price(input){
 		pricingModel.add(x[i.first] + x[i.second] <= 1);
 }
 
-IloNum Price::reducedCost()
+IloNum Price::reducedCost(bool isRoot)
 {
-	return priceSolver.getValue(ReducedCost);
+	if(isRoot)
+		return rc;
+	else
+		return priceSolver.getValue(ReducedCost);
 }
 
-void Price::solve()
+void Price::solve(bool isRoot)
 {
-	ReducedCost.setExpr(1+IloScalProd(price, x));
-	priceSolver.extract(pricingModel);
-	priceSolver.solve();
+	if(isRoot){
+		rc = 1.0 - minknap(in->nItems(), p, w, xFast, in->binCapacity()) / in->factor;
+	}
+	else{
+		ReducedCost.setExpr(1+IloScalProd(price, x));
+		priceSolver.extract(pricingModel);
+		priceSolver.solve();
+	}
 }
 
 ostream &operator<<(ostream &out, Price &p)
