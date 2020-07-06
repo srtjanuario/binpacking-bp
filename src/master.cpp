@@ -135,14 +135,6 @@ void Master::debug()
 	}
 }
 
-// Reset upper bounds
-pair<int,int> Master::reset()
-{
-	forn(Lambda.getSize())
-		Lambda[i].setUB(IloInfinity);
-	return make_pair(0,0);
-}
-
 ostream &operator<<(ostream &out, Master &m)
 {
 	out << m.masterBinPacking << endl;
