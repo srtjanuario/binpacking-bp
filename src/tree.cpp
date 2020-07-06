@@ -74,13 +74,13 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 			m->solve();
 
 			// Get dual variable values
-			m->getDual(p);
+			m->getDual(p,isRoot);
 
 			// Solve pricing
-			p.solve();
+			p.solve(isRoot);
 
 			// Check it there is a new column
-			if (p.reducedCost() > -EPSILON)
+			if (p.reducedCost(isRoot) > -EPSILON)
 				break;
 
 			// Add column and memorize the new items
@@ -94,7 +94,7 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 			return none;
 
 		// Check if we found an integer solution
-		if (!isFractional())
+		if (!isRoot && !isFractional())
 			return saveSolution();
 
 		/* * *
@@ -172,9 +172,14 @@ pair<int, int> Tree::saveSolution()
 	{
 		if (m->binPackingSolver.getValue(m->Lambda[k]) > 0.9)
 		{
+			int sumWeight = 0;
 			for (int i = 0; i < in->nItems(); i++)
-				if (m->bin[k][i] == true)
+				if (m->bin[k][i] == true){
 					storage[j].push_back(i);
+					sumWeight+=in->itemWeight_[i];
+				}
+			if(sumWeight > in->binCapacity())
+				cout<<"Violation in "<<__FILE__<<":"<<__LINE__<<endl;
 			j++;
 		}
 	}
