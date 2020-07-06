@@ -57,12 +57,12 @@ void Tree::debug(Master *m, Node &node)
 
 pair<int, int> Tree::solve(Node &no, bool isRoot)
 {
-	/* * *
-	* Restricted pricing problem
-	* * */
-	Price p(this->in, no);
 	try
 	{
+		/* * *
+		* Restricted problems
+		* * */
+		Price p(this->in, no);
 		m->updateBranchingRules(no);
 
 		/* * *
@@ -88,68 +88,20 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 		}
 
 		/* * *
+		 * Bounding phase
+		 * * */
+		if (!isRoot && bound())
+			return none;
+
+		// Check if we found an integer solution
+		if (!isFractional())
+			return saveSolution();
+
+		/* * *
 		 * Branching phase
 		 * * */
-		IloNumArray Lambda_value(in->env(), m->Lambda.getSize());
-		m->binPackingSolver.getValues(Lambda_value, m->Lambda);
+		return buildOffspring();
 
-		if (!isRoot && bound())
-			return m->reset();
-
-		double mostFractional = std::numeric_limits<double>::infinity();
-		std::pair<int, int> branchingPair;
-		// One i for each item
-		for (int i = 0; i < in->nItems(); i++)
-		{
-			// One j for each item, so i < j
-			for (int j = i + 1; j < in->nItems(); j++)
-			{
-				double accumulation = 0;
-				// One k for each new bin/column
-				for (int k = in->nItems(); k < m->bin.size(); k++)
-					/* * *
-					 * Every lambda represents a set of items
-					 * If two items are in the same bin and the 
-					 * lambda value is fractional we have to help 
-					 * the solver to verify if they should stay 
-					 * together in some bin or separated
-					 * * */
-					if (m->bin[k][i] == true && m->bin[k][j] == true)
-						accumulation += Lambda_value[k];
-				/* * *
-				 * Choose itens that are in the same bin, but 
-				 * their fractional values are closer to 0.5
-				 * * */
-				if (fabs(0.5 - accumulation) < mostFractional)
-				{
-					branchingPair = {i, j};
-					mostFractional = fabs(0.5 - accumulation);
-				}
-			}
-		}
-
-		// Check if we found an integer solution?
-		if (fabs(0.5 - mostFractional) < EPSILON)
-		{
-			integerSolution = (m->binPackingSolver.getObjValue() < integerSolution) ? m->binPackingSolver.getObjValue() : integerSolution;
-			storage.resize(integerSolution);
-			for (int k = 0, j = 0; k < Lambda_value.getSize(); k++)
-			{
-				if (Lambda_value[k] > 0.9)
-				{
-					for (int i = 0; i < in->nItems(); i++)
-						if (m->bin[k][i] == true)
-							storage[j].push_back(i);
-					j++;
-				}
-			}
-			return m->reset();
-		}
-
-		// Clean master for the next node
-		m->reset();
-
-		return branchingPair;
 	}
 	catch (IloException &ex)
 	{
@@ -161,6 +113,71 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 	}
 	// Supress warning: control may reach end of non-void function [-Wreturn-type]
 	cout << "Warning: control reached end of non-void function [-Wreturn-type]" << endl;
+	return none;
+}
+
+bool Tree::isFractional(){
+	// Double check, but you don't need to to this twice
+	if(ceil(m->getObjValue()) > m->getObjValue()+EPSILON || floor(m->getObjValue()) < m->getObjValue()-EPSILON)
+		return true;
+		
+	for (int k = in->nItems(); k < m->Lambda.getSize(); k++)
+		if(m->binPackingSolver.getValue(m->Lambda[k]) > 0.0 + EPSILON && m->binPackingSolver.getValue(m->Lambda[k]) < 1.0 - EPSILON)
+			return true;
+	
+	return false;
+}
+
+pair<int, int> Tree::buildOffspring()
+{
+	pair<int, int> offspring;
+	double mostFractional = std::numeric_limits<double>::infinity();
+	// One i for each item
+	for (int i = 0; i < in->nItems(); i++)
+	{
+		// One j for each item, so i < j
+		for (int j = i + 1; j < in->nItems(); j++)
+		{
+			double accumulation = 0;
+			// One k for each new bin/column
+			for (int k = in->nItems(); k < m->bin.size(); k++)
+				/* * *
+				* Every lambda represents a set of items
+				* If two items are in the same bin and the 
+				* lambda value is fractional we have to help 
+				* the solver to verify if they should stay 
+				* together in some bin or separated
+				* * */
+				if (m->bin[k][i] == true && m->bin[k][j] == true)
+					accumulation += m->binPackingSolver.getValue(m->Lambda[k]);
+			/* * *
+			* Choose itens that are in the same bin, but 
+			* their fractional values are closer to 0.5
+			* * */
+			if (fabs(0.5 - accumulation) < mostFractional)
+			{
+				offspring = {i, j};
+				mostFractional = fabs(0.5 - accumulation);
+			}
+		}
+	}
+	return offspring;
+}
+
+pair<int, int> Tree::saveSolution()
+{
+	integerSolution = (m->binPackingSolver.getObjValue() < integerSolution) ? m->binPackingSolver.getObjValue() : integerSolution;
+	storage.resize(integerSolution);
+	for (int k = 0, j = 0; k < m->Lambda.getSize(); k++)
+	{
+		if (m->binPackingSolver.getValue(m->Lambda[k]) > 0.9)
+		{
+			for (int i = 0; i < in->nItems(); i++)
+				if (m->bin[k][i] == true)
+					storage[j].push_back(i);
+			j++;
+		}
+	}
 	return none;
 }
 
