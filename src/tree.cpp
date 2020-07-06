@@ -93,11 +93,6 @@ pair<int, int> Tree::solve(Node &no, bool isRoot)
 		IloNumArray Lambda_value(in->env(), m->Lambda.getSize());
 		m->binPackingSolver.getValues(Lambda_value, m->Lambda);
 
-		/**
-		 * Reasons to Bound (it does not apply to the root node):
-		 * 	1) The current bound is worse than the best integer solution.
-		 * 	2) We are using artificial values.
-		 * */
 		if (!isRoot && bound())
 			return m->reset();
 
@@ -215,14 +210,17 @@ ostream &operator<<(ostream &out, const Tree &t)
 	return out;
 }
 
+/**
+* Reasons to Bound (it does not apply to the root node):
+* 	1) The current bound is worse than the best integer solution.
+* 	2) We are using artificial values.
+* */
 bool Tree::bound()
 {
 	// 1) The current bound is worse than the best integer solution.
 	if (ceil(m->getObjValue() - EPSILON) - integerSolution >= 0)
 		return true;
 	// 2) We are still using artificial values.
-	forn(in->nItems()) 
-		if (m->binPackingSolver.getValue(m->Lambda[i]) > EPSILON) 
-			return true;
+	forn(in->nItems()) if (m->binPackingSolver.getValue(m->Lambda[i]) > EPSILON) return true;
 	return false;
 }
