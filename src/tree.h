@@ -17,14 +17,33 @@ using namespace std;
 class Tree
 {
 public:
+	// Constructor
 	Tree(Data *in);
+
+	// Destructor
 	~Tree();
+
+	// Branch and price search
 	double search();
+
+	// Built branch in the tree
 	void branch(Node &no, pair<int, int> &ofspringCandidates);
+
+	// Solve column generation based on node information
 	pair<int, int> solve(Node &no, bool isRoot = false);
+
 	void debug(Master *, Node &node);
-	friend ostream& operator<<(ostream &out,const Tree &t);
+
 	bool bound();
+
+	pair<int,int> buildOffspring();
+
+	bool isFractional();
+
+	pair<int, int> saveSolution();
+
+	friend ostream& operator<<(ostream &out,const Tree &t);
+
 private:
 	pair<int, int> none;
 	double integerSolution;
